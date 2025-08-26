@@ -1,108 +1,156 @@
 <?php
 /**
- * Plugin Name:   FotoTechnik - Meow Lightbox Mapping
+ * Plugin Name:   FotoTechnik – Meow Lightbox Mapping
  * Plugin URI:    https://github.com/Raychan87/ft-meow-lightbox-mapping
- * Description:   Ermöglicht das ändern der Kamera und Objektiv Namen in dem Meow Lightbox Plug-In (v5.3.3)
- * Version:       1.0.2
+ * Description:   Ermöglicht das Ändern der Kamera‑ und Objektiv‑Namen im Meow Lightbox‑Plugin (v5.3.3).
+ * Version:       1.0.5
  * Author:        Raychan
  * Author URI:    https://Fototour-und-technik.de
  * License:       GPLv3
  * License URI:   https://github.com/Raychan87/ft-meow-lightbox-mapping/blob/main/LICENSE
+ * Text Domain:   ft-meow-lightbox-maps
+ * Domain Path:   /languages
  */
-
-/* --------------------------------------------------------------
- * 0. Direktzugriff verhindern.
- * -------------------------------------------------------------- */
 
 if ( ! defined( 'ABSPATH' ) ) {
     exit; // Direktzugriff verhindern.
 }
 
 /* --------------------------------------------------------------
- * 1. Beim ersten Laden Standard‑Option anlegen
+ * Globale Konstante – Hauptmenü für meine Plugins
  * -------------------------------------------------------------- */
-function ftmwl_maybe_create_option() {
-    if ( false === get_option( 'ftmwl_maps' ) ) {
+if ( ! defined( 'FT_MENU_SLUG' ) ) {
+    define( 'FT_MENU_SLUG', 'fototechnik' );
+}
+
+/* --------------------------------------------------------------
+ * Beim ersten Laden Standard‑Option anlegen
+ * -------------------------------------------------------------- */
+function ftmlm_maybe_create_option() {
+    if ( false === get_option( 'ftmlm_maps' ) ) {
         // Leere Maps – spätere Render‑Funktionen können damit umgehen.
-        add_option( 'ftmwl_maps', array(
+        add_option( 'ftmlm_maps', array(
             'camera_map' => array(),
             'lens_map'   => array(),
         ) );
     }
 }
-add_action( 'admin_init', 'ftmwl_maybe_create_option' );
+add_action( 'admin_init', 'ftmlm_maybe_create_option' );
 
 /* --------------------------------------------------------------
- * 2. Admin‑Menü & Settings‑Seite
+ * Admin‑Menü & Settings‑Seite
  * -------------------------------------------------------------- */
-add_action( 'admin_menu', 'ftmwl_add_admin_menu' );
-function ftmwl_add_admin_menu() {
+add_action( 'admin_menu', 'ftmlm_add_admin_menu' );
+function ftmlm_add_admin_menu() {
 
-    /* Top‑Level‑Eintrag „FotoTechnik“ */
-    add_menu_page(
-        __( 'FotoTechnik', 'fototechnik-mwl-maps' ), // Seitentitel (Browser‑Tab)
-        __( 'FotoTechnik', 'fototechnik-mwl-maps' ), // Menü‑Eintrag
-        'manage_options',                           // Capability
-        'ftmwl-main',                               // Slug des Top‑Level‑Eintrags
-        '__return_null',                            // Keine eigene Seite – wir leiten nur weiter
-        'dashicons-camera',                         // Icon (optional)
-        65                                          // Position im Menü
-    );
+    // Prüfen, ob das Hauptmenü bereits existiert
+    $menu_exists = false;
+    global $menu; // $menu ist das Kern‑Array von WP‑Admin‑Menüs
 
-    /* Den automatisch erzeugten Untermenü‑Eintrag entfernen */
-    remove_submenu_page( 'ftmwl-main', 'ftmwl-main' );
+    foreach ( $menu as $item ) {
+        // $item[2] enthält den Slug
+        if ( isset( $item[2] ) && $item[2] === FT_MENU_SLUG ) {
+            $menu_exists = true;
+            break;
+        }
+    }
 
-    /* Untermenü‑Eintrag „MWL‑Maps“ */
+    // Wenn nicht vorhanden → Hauptmenü anlegen
+    // Top‑Level‑Eintrag „FotoTechnik“
+    if ( ! $menu_exists ) {
+        add_menu_page(
+            __( 'FotoTechnik', 'ft-meow-lightbox-maps' ), // Page title (wird im Browser‑Tab angezeigt)
+            __( 'FotoTechnik', 'ft-meow-lightbox-maps' ), // Menu title (sichtbar im Admin‑Menu)
+            'manage_options',                             // Capability – wer das Menü sehen darf
+            FT_MENU_SLUG,                                 // Slug des Top‑Level‑Eintrags
+            '__return_null',                              // Callback (hier nicht nötig)
+            'dashicons-camera',                           // Icon
+            81                                            // Position im Menü
+        );
+
+        add_submenu_page(
+            FT_MENU_SLUG,                               // Parent slug (unser Top‑Level‑Menü)
+            __( 'Overview', 'ft-meow-lightbox-maps' ),  // Seitentitel (Browser‑Tab)
+            __( 'Overview', 'ft-meow-lightbox-maps' ),  // Menü‑Eintrag im Untermenü 
+            'manage_options',                           // Capability
+            FT_MENU_SLUG,                               // **gleicher Slug wie das Top‑Level‑Menü**
+            'ftmlm_main_page_callback'                  // Callback, der die Haupt‑Seite rendert
+        );
+    }
+
+    // Untermenü‑Eintrag „Meow Lightbox Mapping“
     add_submenu_page(
-        'ftmwl-main',                                   // Parent‑Slug
-        __( 'Meow Lightbox Mapping', 'fototechnik-mwl-maps' ),       // Seitentitel (Browser‑Tab)
-        __( 'Meow Lightbox Mapping', 'fototechnik-mwl-maps' ),       // Menü‑Eintrag im Untermenü
-        'manage_options',                               // Capability
-        'ftmwl-settings',                               // Slug des Untermenüs (muss mit Settings‑Page übereinstimmen)
-        'ftmwl_settings_page'                          // Callback, die das Formular ausgibt
+        FT_MENU_SLUG,                                           // Parent‑Slug
+        __( 'Meow Lightbox Mapping', 'ft-meow-lightbox-maps' ), // Seitentitel (Browser‑Tab)
+        __( 'Meow Lightbox Mapping', 'ft-meow-lightbox-maps' ), // Menü‑Eintrag im Untermenü
+        'manage_options',                                       // Capability
+        'ftmlm-settings',                                       // Slug des Untermenüs (muss mit Settings‑Page übereinstimmen)
+        'ftmlm_settings_page'                                   // Callback, die das Formular ausgibt
     );
 }
 
 /* --------------------------------------------------------------
- * 3. Settings‑API registrieren
+ * Callback für die Haupt‑Seite (FotoTechnik)
  * -------------------------------------------------------------- */
-add_action( 'admin_init', 'ftmwl_register_settings' );
-function ftmwl_register_settings() {
+function ftmlm_main_page_callback() {
+    $file = plugin_dir_path( __FILE__ ) . 'inc/ft-main-page.php';
+
+    if ( file_exists( $file ) ) {
+        /**
+         * Optional: Ausgabe‑Puffer, damit wir im Fehlerfall
+         * kontrolliert reagieren können.
+         */
+        ob_start();
+        include $file;
+        echo ob_get_clean();
+    } else {
+         // Fallback‑Nachricht, falls die Datei fehlt
+        echo '<div class="notice notice-error"><p>';
+        _e( 'Die Haupt‑Seite konnte nicht geladen werden – die Datei ft‑main‑page.php fehlt.', 'ft-meow-lightbox-maps' );
+        echo '</p></div>';
+    }
+}
+
+/* --------------------------------------------------------------
+ * Settings‑API registrieren
+ * -------------------------------------------------------------- */
+add_action( 'admin_init', 'ftmlm_register_settings' );
+function ftmlm_register_settings() {
 
     register_setting(
-        'ftmwl_options_group',   // Settings‑Gruppe
-        'ftmwl_maps',            // Options‑Name in DB
-        'ftmwl_sanitize_maps'    // Sanitizer‑Callback
+        'ftmlm_options_group',   // Settings‑Gruppe
+        'ftmlm_maps',            // Options‑Name in DB
+        'ftmlm_sanitize_maps'    // Sanitizer‑Callback
     );
 
     add_settings_section(
-        'ftmwl_section_maps',
-        __( 'Zum ändern der Objektiv und Kamera Namen in den Exif angaben.', 'fototechnik-mwl-maps' ),
+        'ftmlm_section_maps',
+        __( 'Zum Ändern der Objektiv‑ und Kamera‑Namen in den Exif‑Angaben.', 'ft-meow-lightbox-maps' ),
         '__return_false',
-        'ftmwl-settings'
+        'ftmlm-settings'
     );
 
     add_settings_field(
-        'ftmwl_camera_map',
-        __( 'Kamera‑Map', 'fototechnik-mwl-maps' ),
-        'ftmwl_render_camera_field',
-        'ftmwl-settings',
-        'ftmwl_section_maps'
+        'ftmlm_camera_map',
+        __( 'Kamera‑Map', 'ft-meow-lightbox-maps' ),
+        'ftmlm_render_camera_field',
+        'ftmlm-settings',
+        'ftmlm_section_maps'
     );
 
     add_settings_field(
-        'ftmwl_lens_map',
-        __( 'Objektiv‑Map', 'fototechnik-mwl-maps' ),
-        'ftmwl_render_lens_field',
-        'ftmwl-settings',
-        'ftmwl_section_maps'
+        'ftmlm_lens_map',
+        __( 'Objektiv‑Map', 'ft-meow-lightbox-maps' ),
+        'ftmlm_render_lens_field',
+        'ftmlm-settings',
+        'ftmlm_section_maps'
     );
 }
 
 /* --------------------------------------------------------------
- * 4. Sanitizer – Text → Array
+ * Sanitizer – Text → Array
  * -------------------------------------------------------------- */
-function ftmwl_sanitize_maps( $input ) {
+function ftmlm_sanitize_maps( $input ) {
 
     $output = array(
         'camera_map' => array(),
@@ -145,10 +193,10 @@ function ftmwl_sanitize_maps( $input ) {
 }
 
 /* --------------------------------------------------------------
- * 5. Render‑Funktionen (HTML für die Textareas)
+ * Render‑Funktionen (HTML für die Textareas)
  * -------------------------------------------------------------- */
-function ftmwl_render_camera_field() {
-    $options = get_option( 'ftmwl_maps' );
+function ftmlm_render_camera_field() {
+    $options = get_option( 'ftmlm_maps' );
     $map     = isset( $options['camera_map'] ) ? $options['camera_map'] : array();
 
     // Array → Zeilen‑String (key => value)
@@ -158,19 +206,19 @@ function ftmwl_render_camera_field() {
     }
     ?>
     <textarea
-        name="ftmwl_maps[camera_map]"
+        name="ftmlm_maps[camera_map]"
         rows="12"
         cols="70"
         class="large-text code"
         style="font-family:monospace;"><?php echo esc_textarea( $textarea ); ?></textarea>
     <p class="description">
-        <?php esc_html_e( 'Ein Eintrag pro Zeile, z. B. "ILCE-7M3 => Sony α7 III". Kommentare mit # zulässig.', 'fototechnik-mwl-maps' ); ?>
+        <?php esc_html_e( 'Ein Eintrag pro Zeile, z. B. "ILCE-7M3 => Sony α7 III". Kommentare mit # zulässig.', 'ft-meow-lightbox-maps' ); ?>
     </p>
     <?php
 }
 
-function ftmwl_render_lens_field() {
-    $options = get_option( 'ftmwl_maps' );
+function ftmlm_render_lens_field() {
+    $options = get_option( 'ftmlm_maps' );
     $map     = isset( $options['lens_map'] ) ? $options['lens_map'] : array();
 
     $textarea = '';
@@ -179,33 +227,33 @@ function ftmwl_render_lens_field() {
     }
     ?>
     <textarea
-        name="ftmwl_maps[lens_map]"
+        name="ftmlm_maps[lens_map]"
         rows="15"
         cols="70"
         class="large-text code"
         style="font-family:monospace;"><?php echo esc_textarea( $textarea ); ?></textarea>
     <p class="description">
-        <?php esc_html_e( 'Ein Eintrag pro Zeile, z. B. "FE 24-240mm F3.5-6.3 OSS => Sony 24-240mm F3.5-6.3 OSS".', 'fototechnik-mwl-maps' ); ?>
+        <?php esc_html_e( 'Ein Eintrag pro Zeile, z. B. "FE 24-240mm F3.5-6.3 OSS => Sony 24-240mm F3.5-6.3 OSS".', 'ft-meow-lightbox-maps' ); ?>
     </p>
     <?php
 }
 
 /* --------------------------------------------------------------
- * 6. Settings‑Seite (Formular)
+ * Settings‑Seite (Formular)
  * -------------------------------------------------------------- */
-function ftmwl_settings_page() {
+function ftmlm_settings_page() {
     if ( ! current_user_can( 'manage_options' ) ) {
-        wp_die( __( 'Zugriff verweigert.', 'fototechnik-mwl-maps' ) );
+        wp_die( __( 'Zugriff verweigert.', 'ft-meow-lightbox-maps' ) );
     }
     ?>
     <div class="wrap">
-        <h1><?php esc_html_e( 'Meow Lightbox - Kamera‑ & Objektiv‑Mappings', 'fototechnik-mwl-maps' ); ?></h1>
+        <h1><?php esc_html_e( 'Meow Lightbox – Kamera‑ & Objektiv‑Mappings', 'ft-meow-lightbox-maps' ); ?></h1>
 
         <form method="post" action="options.php">
             <?php
-            settings_fields( 'ftmwl_options_group' );   // Nonce + hidden fields
-            do_settings_sections( 'ftmwl-settings' );   // Unsere Felder
-            submit_button();                           // „Änderungen übernehmen“
+            settings_fields( 'ftmlm_options_group' );   // Nonce + hidden fields
+            do_settings_sections( 'ftmlm-settings' );   // Sections + fields
+            submit_button();                            // „Änderungen übernehmen“
             ?>
         </form>
     </div>
@@ -213,30 +261,63 @@ function ftmwl_settings_page() {
 }
 
 /* --------------------------------------------------------------
- * 7. Filter‑Callbacks (die eigentlichen Mapping‑Funktionen)
+ * Hilfsfunktion: Mapping‑Array aus der DB holen
  * -------------------------------------------------------------- */
-function ftmwl_mwl_img_lens( $value, $mediaId, $meta ) {
+function ftmlm_get_map( $type ) {
+    $options = get_option( 'ftmlm_maps', array() );
+
+    $key = ( $type === 'camera' ) ? 'camera_map' : 'lens_map';
+
+    $raw = ( isset( $options[ $key ] ) && is_array( $options[ $key ] ) )
+        ? $options[ $key ]
+        : array();
+
+    // Trim‑Whitespace um mögliche Eingabefehler zu kompensieren
+    $clean = array();
+    foreach ( $raw as $k => $v ) {
+        $clean[ trim( $k ) ] = trim( $v );
+    }
+
+    return $clean;
+}
+
+/* --------------------------------------------------------------
+ * Filter‑Callbacks für Meow Lightbox
+ * -------------------------------------------------------------- */
+function ftmlm_filter_lens( $value, $mediaId, $meta ) {
     if ( empty( $value ) ) {
         return 'N/A';
     }
 
-    $maps     = get_option( 'ftmwl_maps' );
-    $lens_map = isset( $maps['lens_map'] ) ? $maps['lens_map'] : array();
+    $map = ftmlm_get_map( 'lens' );
 
-    return $lens_map[ $value ] ?? $value;
+    return isset( $map[ $value ] ) ? $map[ $value ] : $value;
 }
-add_filter( 'mwl_img_lens', 'ftmwl_mwl_img_lens', 10, 3 );
 
-function ftmwl_mwl_img_camera( $value, $mediaId, $meta ) {
+function ftmlm_filter_camera( $value, $mediaId, $meta ) {
     if ( empty( $value ) ) {
         return 'N/A';
     }
 
-    $maps        = get_option( 'ftmwl_maps' );
-    $camera_map  = isset( $maps['camera_map'] ) ? $maps['camera_map'] : array();
+    $map = ftmlm_get_map( 'camera' );
 
-    return $camera_map[ $value ] ?? $value;
+    return isset( $map[ $value ] ) ? $map[ $value ] : $value;
 }
 
-add_filter( 'mwl_img_camera', 'ftmwl_mwl_img_camera', 10, 3 );
+/* --------------------------------------------------------------
+ * Registrierung der Filter (nach allen Plugins geladen)
+ * -------------------------------------------------------------- */
+add_action( 'plugins_loaded', function () {
+    // Priority 20 stellt sicher, dass unser Mapping nach evtl. anderen Plugins ausgeführt wird
+    add_filter( 'mwl_img_lens',   'ftmlm_filter_lens',   20, 3 );
+    add_filter( 'mwl_img_camera','ftmlm_filter_camera', 20, 3 );
+} );
+
+/* --------------------------------------------------------------
+ * Textdomain laden (für Übersetzungen)
+ * -------------------------------------------------------------- */
+add_action( 'plugins_loaded', function () {
+    load_plugin_textdomain( 'ft-meow-lightbox-maps', false,
+        dirname( plugin_basename( __FILE__ ) ) . '/languages' );
+} );
 
