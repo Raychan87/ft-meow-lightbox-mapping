@@ -1,12 +1,13 @@
 <?php
 /**
  * Plugin Name:   FotoTechnik - Meow Lightbox Mapping
- * Plugin URI:    https://Fototour-und-technik.de
+ * Plugin URI:    https://github.com/Raychan87/ft-meow-lightbox-mapping
  * Description:   Ermöglicht das ändern der Kamera und Objektiv Namen in dem Meow Lightbox Plug-In (v5.3.3)
- * Version:       1.0
+ * Version:       1.0.1
  * Author:        Raychan
  * Author URI:    https://Fototour-und-technik.de
  * License:       GPLv3
+ * License URI:   https://github.com/Raychan87/ft-meow-lightbox-mapping/blob/main/LICENSE
  */
 
 /* --------------------------------------------------------------
@@ -228,4 +229,5 @@ function ftmwl_mwl_img_camera( $value, $mediaId, $meta ) {
 
     return $camera_map[ $value ] ?? $value;
 }
+
 add_filter( 'mwl_img_camera', 'ftmwl_mwl_img_camera', 10, 3 );
