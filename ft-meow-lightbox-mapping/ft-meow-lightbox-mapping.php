@@ -3,7 +3,7 @@
  * Plugin Name:   FotoTechnik - Meow Lightbox Mapping
  * Plugin URI:    https://github.com/Raychan87/ft-meow-lightbox-mapping
  * Description:   Ermöglicht das ändern der Kamera und Objektiv Namen in dem Meow Lightbox Plug-In (v5.3.3)
- * Version:       1.0.1
+ * Version:       1.0.2
  * Author:        Raychan
  * Author URI:    https://Fototour-und-technik.de
  * License:       GPLv3
@@ -11,7 +11,15 @@
  */
 
 /* --------------------------------------------------------------
- * 0. Beim ersten Laden Standard‑Option anlegen
+ * 0. Direktzugriff verhindern.
+ * -------------------------------------------------------------- */
+
+if ( ! defined( 'ABSPATH' ) ) {
+    exit; // Direktzugriff verhindern.
+}
+
+/* --------------------------------------------------------------
+ * 1. Beim ersten Laden Standard‑Option anlegen
  * -------------------------------------------------------------- */
 function ftmwl_maybe_create_option() {
     if ( false === get_option( 'ftmwl_maps' ) ) {
@@ -25,7 +33,7 @@ function ftmwl_maybe_create_option() {
 add_action( 'admin_init', 'ftmwl_maybe_create_option' );
 
 /* --------------------------------------------------------------
- * 1. Admin‑Menü & Settings‑Seite
+ * 2. Admin‑Menü & Settings‑Seite
  * -------------------------------------------------------------- */
 add_action( 'admin_menu', 'ftmwl_add_admin_menu' );
 function ftmwl_add_admin_menu() {
@@ -56,7 +64,7 @@ function ftmwl_add_admin_menu() {
 }
 
 /* --------------------------------------------------------------
- * 2. Settings‑API registrieren
+ * 3. Settings‑API registrieren
  * -------------------------------------------------------------- */
 add_action( 'admin_init', 'ftmwl_register_settings' );
 function ftmwl_register_settings() {
@@ -92,7 +100,7 @@ function ftmwl_register_settings() {
 }
 
 /* --------------------------------------------------------------
- * 3. Sanitizer – Text → Array
+ * 4. Sanitizer – Text → Array
  * -------------------------------------------------------------- */
 function ftmwl_sanitize_maps( $input ) {
 
@@ -137,7 +145,7 @@ function ftmwl_sanitize_maps( $input ) {
 }
 
 /* --------------------------------------------------------------
- * 4. Render‑Funktionen (HTML für die Textareas)
+ * 5. Render‑Funktionen (HTML für die Textareas)
  * -------------------------------------------------------------- */
 function ftmwl_render_camera_field() {
     $options = get_option( 'ftmwl_maps' );
@@ -183,7 +191,7 @@ function ftmwl_render_lens_field() {
 }
 
 /* --------------------------------------------------------------
- * 5. Settings‑Seite (Formular)
+ * 6. Settings‑Seite (Formular)
  * -------------------------------------------------------------- */
 function ftmwl_settings_page() {
     if ( ! current_user_can( 'manage_options' ) ) {
@@ -205,7 +213,7 @@ function ftmwl_settings_page() {
 }
 
 /* --------------------------------------------------------------
- * 6. Filter‑Callbacks (die eigentlichen Mapping‑Funktionen)
+ * 7. Filter‑Callbacks (die eigentlichen Mapping‑Funktionen)
  * -------------------------------------------------------------- */
 function ftmwl_mwl_img_lens( $value, $mediaId, $meta ) {
     if ( empty( $value ) ) {
@@ -231,3 +239,4 @@ function ftmwl_mwl_img_camera( $value, $mediaId, $meta ) {
 }
 
 add_filter( 'mwl_img_camera', 'ftmwl_mwl_img_camera', 10, 3 );
+
