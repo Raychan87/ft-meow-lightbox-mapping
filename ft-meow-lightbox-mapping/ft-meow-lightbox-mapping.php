@@ -3,7 +3,7 @@
  * Plugin Name:   FotoTechnik – Meow Lightbox Mapping
  * Plugin URI:    https://github.com/Raychan87/ft-meow-lightbox-mapping
  * Description:   Ermöglicht das Ändern der Kamera‑ und Objektiv‑Namen im Meow Lightbox‑Plugin (v5.3.3).
- * Version:       1.0.5
+ * Version:       1.0.6
  * Author:        Raychan
  * Author URI:    https://Fototour-und-technik.de
  * License:       GPLv3
@@ -58,13 +58,21 @@ function ftmlm_add_admin_menu() {
     // Wenn nicht vorhanden → Hauptmenü anlegen
     // Top‑Level‑Eintrag „FotoTechnik“
     if ( ! $menu_exists ) {
+
+        // ----  Pfad / URL zum eigenen Icon  ----
+        $icon_url = plugin_dir_url( __FILE__ ) . 'inc/ft-icon.png';
+        if ( ! file_exists( plugin_dir_path( __FILE__ ) . 'inc/ft-icon.png' ) ) {
+            // Fallback zu Dashicon, falls die PNG fehlt
+            $icon_url = 'dashicons-camera';
+        }
+
         add_menu_page(
             __( 'FotoTechnik', 'ft-meow-lightbox-maps' ), // Page title (wird im Browser‑Tab angezeigt)
             __( 'FotoTechnik', 'ft-meow-lightbox-maps' ), // Menu title (sichtbar im Admin‑Menu)
             'manage_options',                             // Capability – wer das Menü sehen darf
             FT_MENU_SLUG,                                 // Slug des Top‑Level‑Eintrags
             '__return_null',                              // Callback (hier nicht nötig)
-            'dashicons-camera',                           // Icon
+            $icon_url,                                    // **eigenes PNG‑Icon**
             81                                            // Position im Menü
         );
 
@@ -86,6 +94,24 @@ function ftmlm_add_admin_menu() {
         'manage_options',                                       // Capability
         'ftmlm-settings',                                       // Slug des Untermenüs (muss mit Settings‑Page übereinstimmen)
         'ftmlm_settings_page'                                   // Callback, die das Formular ausgibt
+    );
+}
+
+/* -------------------------------------------------
+ * CSS‑Feinjustierung für das Icon
+ * ------------------------------------------------- */
+add_action( 'admin_enqueue_scripts', 'ftmlm_admin_menu_icon_css' );
+function ftmlm_admin_menu_icon_css() {
+    // Nur im Admin‑Dashboard ausgeben
+    wp_add_inline_style(
+        'wp-admin',
+        '
+        #toplevel_page_' . FT_MENU_SLUG . ' .wp-menu-image img {
+            width: 20px;
+            height: 20px;
+            padding-top: 6px;
+        }
+        '
     );
 }
 
@@ -247,7 +273,7 @@ function ftmlm_settings_page() {
     }
     ?>
     <div class="wrap">
-        <h1><?php esc_html_e( 'Meow Lightbox – Kamera‑ & Objektiv‑Mappings', 'ft-meow-lightbox-maps' ); ?></h1>
+        <h1><?php esc_html_e( 'Foto Technik - Meow Lightbox - Kamera‑ & Objektiv‑Mappings', 'ft-meow-lightbox-maps' ); ?></h1>
 
         <form method="post" action="options.php">
             <?php

@@ -26,6 +26,10 @@ Languages: Deutsch.
 
 == Changelog ==
 
+= 1.0.6 = 
+* add: Overview Page
+* add: Icon
+
 = 1.0.5 = 
 * bug: many fixes
 
