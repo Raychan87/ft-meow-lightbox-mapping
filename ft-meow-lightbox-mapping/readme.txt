@@ -1,11 +1,30 @@
-=== Plugin Name ===
-Contributors: (this should be a list of wordpress.org userid's)
-Donate link: https://example.com/
-Tags: tag1, tag2
-Requires at least: 4.7
-Tested up to: 5.4
-Stable tag: 4.3
-Requires PHP: 7.0
-License: GPLv2 or later
-License URI: https://www.gnu.org/licenses/gpl-2.0.html
-Here is a short description of the plugin.  This should be no more than 150 characters.  No markup here.
+=== FotoTechnik - Meow Lightbox Mapping ===
+Contributors: Raychan87
+Donate link: https://fototour-und-technik.de
+Tags: exif
+Requires at least: 6.0
+Tested up to: 6.8.2
+Stable tag: 1.0
+Requires PHP: 8.2
+License: GPLv3
+License URI: https://github.com/Raychan87/ft-meow-lightbox-mapping/blob/main/LICENSE
+
+== Description ==
+
+Allows you to change the camera and lens names in the Meow Lightbox plug-in ( >= v5.3.3)
+
+== Requirements ==
+
+This "Meow Lightbox" Plugin.
+
+Languages: Deutsch.
+
+== Installation ==
+
+1. Upload `ft-meow-lightbox-mapping` to the `/wp-content/plugins/` directory
+2. Activate the plugin through the 'Plugins' menu in WordPress
+
+== Changelog ==
+
+= 1.0 =
+* First release.
