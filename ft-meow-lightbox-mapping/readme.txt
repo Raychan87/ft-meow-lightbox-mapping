@@ -4,7 +4,7 @@ Donate link: https://fototour-und-technik.de
 Tags: exif
 Requires at least: 6.0
 Tested up to: 6.8.2
-Stable tag: 1.0.2
+Stable tag: 1.0.5
 Requires PHP: 8.2
 License: GPLv3
 License URI: https://github.com/Raychan87/ft-meow-lightbox-mapping/blob/main/LICENSE
@@ -25,6 +25,9 @@ Languages: Deutsch.
 2. Activate the plugin through the 'Plugins' menu in WordPress
 
 == Changelog ==
+
+= 1.0.5 = 
+* bug: many fixes
 
 = 1.0.2 = 
 * add: Security (Direktzugriff verhindern)
